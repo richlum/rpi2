@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import subprocess
+import re
 
-#cmd='airmon-ng check wlan0 | grep -v supplicant  | grep -P -e"^[0-9]{4}"  -o '
 cmd1='airmon-ng'
 cmd='echo'
 arg1='check'
 arg2='wlan0'
 output = subprocess.check_output([cmd1,arg1,arg2])
-
 print output
+
+m = re.search('PID',output)
+print  m
 

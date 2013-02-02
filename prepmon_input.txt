@@ -1,0 +1,18 @@
+Found 7 processes that could cause trouble.
+If airodump-ng, aireplay-ng or airtun-ng stops working after
+a short period of time, you may want to kill (some of) them!
+-e 
+PID Name
+1430    ifplugd
+1483    ifplugd
+1497    ifplugd
+1566    wpa_supplicant
+1684    wpa_cli
+2108    dhclient
+2183    dhclient
+Process with PID 1483 (ifplugd) is running on interface wlan0
+Process with PID 1566 (wpa_supplicant) is running on interface wlan0
+Process with PID 1684 (wpa_cli) is running on interface wlan0
+Process with PID 2108 (dhclient) is running on interface wlan0
+Process with PID 2183 (dhclient) is running on interface wlan0
+
