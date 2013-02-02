@@ -1,0 +1,11 @@
+set -v 
+/bin/sleep 30 # // to allow network interface to come up
+/bin/date > /tmp/ifconfig.txt
+/sbin/ifconfig >> /tmp/ifconfig.txt
+
+scp /tmp/ifconfig.txt aws:/home/shared/piboot/pi01.txt
+/usr/bin/mail -s "pi boot" richardlum13@gmail.com < /tmp/ifconfig.txt
+rm /tmp/ifconfig.txt
+
+ssh -R aws:2222:localhost:22 aws
+
