@@ -28,9 +28,11 @@ for  process in m:
 for a in args:
     print a
 
+rc=0
 #kill the processes
-rc = subprocess.call(args)
-print "kill rc = " + str(rc)
+if len(args)>1:
+	rc = subprocess.call(args)
+	print "kill rc = " + str(rc)
 
 if rc == 0 :
     arg1='start'
@@ -42,7 +44,7 @@ if rc == 0 :
     interface=m.group(1)
     print interface
    
-    cmdstr="tshark -i mon0  -T fields -f (wlan.ta) -e radiotap.dbm_antsignal -e wlan.ta -e wlan_mgt"
+    cmdstr='tshark -i mon0  -T fields -e radiotap.dbm_antsignal -e frame.len -e wlan.ta -e wlan.ra -e wlan.fc.type_subtype'
     cmd=cmdstr.split()
     rc = subprocess.call(cmd)
     print "tshark rc = " + str(rc)   
