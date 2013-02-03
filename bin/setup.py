@@ -44,7 +44,7 @@ if rc == 0 :
     interface=m.group(1)
     print interface
    
-    cmdstr='tshark -i mon0  -T fields -e radiotap.dbm_antsignal -e frame.len -e wlan.ta -e wlan.ra -e wlan.fc.type_subtype'
+    cmdstr='tshark -i mon0  -T fields -e radiotap.dbm_antsignal -e frame.len -e wlan.ta -e wlan.ra -e wlan.da -e wlan.sa -e wlan.fc.type_subtype'
     cmd=cmdstr.split()
     rc = subprocess.call(cmd)
     print "tshark rc = " + str(rc)   
