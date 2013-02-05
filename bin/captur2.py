@@ -60,7 +60,7 @@ while 1:
             mac_sample[mac].add(fields[0])
 
         count+=1
-        if(count>1000):
+        if(count>100):
             count=0
             display_update(mac_sample)
     
