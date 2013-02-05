@@ -19,7 +19,8 @@ def display_update(mac_signal):
     print "updating"
     sorted_signals=sorted(mac_signal.iteritems(),key=operator.itemgetter(1))
     for x in sorted_signals:
-        print x
+        print "%s, sig = %4d  var = %2d" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var()  )
+
 
 
 mac_sample={}  # hash of observations
@@ -44,7 +45,7 @@ while 1:
         count+=1
         if(count>1000):
             count=0
-#           display_update(mac_sample)
+            display_update(mac_sample)
     
 
     except KeyboardInterrupt:
@@ -54,5 +55,5 @@ while 1:
        continue
     
 
-    print >> sys.stderr, "*" + str(fields)
+#    print >> sys.stderr, "*" + str(fields)
 

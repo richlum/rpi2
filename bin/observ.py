@@ -20,10 +20,10 @@ class Observation:
         self.count+=1
         #for rolling average keep last avgsize samples 
         if len(self.rolling_samples) < self.avgsize:
-            self.rolling_samples.append(sig_str)
+            self.rolling_samples.append(int(sig_str))
         else:
             self.rolling_samples.pop(0)
-            self.rolling_samples.append(sig_str)
+            self.rolling_samples.append(int(sig_str))
 
    # def avg_sig(self):
     #    return   self.ss_sum / self.count
@@ -34,11 +34,16 @@ class Observation:
 #
 
     def rolling_avg(self):
-        return sum(self.rolling_avg)/len(self.rolling_avg)
+        size=len(self.rolling_samples)
+        if size>0:   
+            return sum(self.rolling_samples)/size
+        else:
+            return 0
 
     def rolling_var(self):
-        sumsquares = sum([ x^2 for x in self.rollingsamples])
-        return sumsquares/len(self.rolling_avg) - self.rolling_avg()^2
-
-
-
+        sumsquares = sum([ x^2 for x in self.rolling_samples])
+        denom =  len(self.rolling_samples) - self.rolling_avg()^2
+        if (denom == 0):
+            return 0
+        else:
+            return sumsquares/denom
