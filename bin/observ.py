@@ -13,17 +13,23 @@ class Observation:
         self.avgsize=avgsize    # no of obs for rolling average
         self.rolling_samples = []
 
+    def is_number(str):
+        try:
+            int(str)
+            return True
+        except ValueError:
+            return False
+
+
     def add(self, sig_str, bytes=0):
-        #self.ss_sum += sig_str
-        #self.ss_sum_squares += sig_str^2
-       # self.bytes_sum += bytes
-        self.count+=1
-        #for rolling average keep last avgsize samples 
-        if len(self.rolling_samples) < self.avgsize:
-            self.rolling_samples.append(int(sig_str))
-        else:
-            self.rolling_samples.pop(0)
-            self.rolling_samples.append(int(sig_str))
+        if is_number(sig_str):
+            self.count+=1
+            #for rolling average keep last avgsize samples 
+            if len(self.rolling_samples) < self.avgsize:
+                self.rolling_samples.append(int(sig_str))
+            else:
+                self.rolling_samples.pop(0)
+                self.rolling_samples.append(int(sig_str))
 
    # def avg_sig(self):
     #    return   self.ss_sum / self.count
