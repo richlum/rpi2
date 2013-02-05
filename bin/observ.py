@@ -4,7 +4,7 @@ class Observation:
     """
     object to accumulate signal observations into a sample
     """
-    def __init__(self, sig_str,isAP=False, avgsize=10, bytes=0):
+    def __init__(self, sig_str,isAP=False, avgsize=100, bytes=0):
         #self.ss_sum = sig_str
         #self.ss_sum_squares = sig_str^2
         #self.AP = isAP
