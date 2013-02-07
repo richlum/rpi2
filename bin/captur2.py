@@ -30,7 +30,7 @@ def display_update(mac_signal):
     sorted_signals=sorted(mac_signal.iteritems(),key=operator.itemgetter(1))
     count=2
     for x in sorted_signals:
-        outstr = "%s, sig = %4d  var = %2d" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var()  )
+        outstr = "%s, sig = %4d  var = %4.1f   %4d" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var() , x[1].getlocalcount() )
         screen.addstr(count,2, outstr  )
         count+=1
         if count>=(screen.getmaxyx()[0]-1):
@@ -60,7 +60,7 @@ while 1:
             mac_sample[mac].add(fields[0])
 
         count+=1
-        if(count>100):
+        if(count>200):
             count=0
             display_update(mac_sample)
     

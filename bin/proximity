@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./setup.py | ./captur2.py
+sudo ./setup.py | ./captur2.py
