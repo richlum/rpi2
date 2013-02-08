@@ -8,6 +8,12 @@ class Observation:
         self.count=1
         self.avgsize=avgsize    # no of obs for rolling average
         self.rolling_samples = []
+        bytes=0;
+        subtype=''
+        time=0
+        freq=''
+        ssid=''
+        wifitype=''
 
     def is_number(str):
         try:
@@ -20,6 +26,13 @@ class Observation:
     def add(self, sig_str, bytes, subtype, time, freq, ssid, wifitype):
         if len(sig_str)>0:
             self.count+=1
+            if (len(subtype)>0):
+                self.subtype=subtype
+            self.time=time
+            self.freq=freq
+            if(len(ssid)>0):
+                self.ssid=ssid
+            self.wifitype=wifitype
             #for rolling average keep last avgsize samples 
             if len(self.rolling_samples) < self.avgsize:
                 self.rolling_samples.append(int(sig_str))
@@ -27,13 +40,6 @@ class Observation:
                 self.rolling_samples.pop(0)
                 self.rolling_samples.append(int(sig_str))
 
-   # def avg_sig(self):
-    #    return   self.ss_sum / self.count
-
-    #std variance of sample = E[x^2] - (E[x])^2
-    #def var_sig(self):
-    #    return (self.ss_sum_squares/self.count - self.avg_sig()^2)
-#
 
     def rolling_avg(self):
         size=len(self.rolling_samples)
