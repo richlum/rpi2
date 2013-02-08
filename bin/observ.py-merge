@@ -31,8 +31,8 @@ class Observation:
 
 
     def add(self, sig_str, bytes=0):
+        #if is_number(sig_str):
         if len(sig_str)>0:
-            self.count+=1
             self.localcount+=1
             #for rolling average keep last avgsize samples 
             if len(self.rolling_samples) < self.avgsize:
