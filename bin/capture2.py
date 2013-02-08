@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import observ
+import observ2
 import sys
 import curses
 import os
@@ -30,7 +30,8 @@ def display_update(mac_signal):
     sorted_signals=sorted(mac_signal.iteritems(),key=operator.itemgetter(1))
     count=2
     for x in sorted_signals:
-        outstr = "%s, sig = %4d  var = %2d" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var()  )
+        #outstr = "%s, sig = %4d  var = %2d" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var()  )
+        outstr = "%s, sig = %4d  var = %5.1f   %4d %s " %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var() , x[1].getlocalcount(),  x[1].ssid)
         screen.addstr(count,2, outstr  )
         count+=1
         if count>=(screen.getmaxyx()[0]-1):
@@ -54,7 +55,7 @@ while 1:
             continue
         #no sa or ta
         if (mac not in mac_sample):
-            o=observ.Observation(fields[0], \
+            o=observ2.Observation(fields[0], \
                 fields[1], \
                 fields[6], \
                 fields[7], \

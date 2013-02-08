@@ -67,8 +67,7 @@ cmdstr="tshark -i %s -T fields \
     -e frame.time_epoch \
     -e radiotap.chanel.freq \
     -e wlan_mgt.ssid \
-    -e radiotap.channel.type \
-    % (interface)
+    -e radiotap.channel.type"  % (interface)
 cmd=cmdstr.split()
 rc = subprocess.call(cmd)
 print  >> sys.stderr, "tshark rc = " + str(rc)  

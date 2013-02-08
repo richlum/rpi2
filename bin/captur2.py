@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import observ
+import observ2
 import sys
 import curses
 import os
