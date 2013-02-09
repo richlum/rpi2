@@ -57,6 +57,7 @@ if ((rc == 0) and ((interface)==None)) :
 
 print >> sys.stderr, interface
 cmdstr="tshark -i %s -T fields \
+    -E separator=; \
     -e radiotap.dbm_antsignal \
     -e frame.len \
     -e wlan.ta \
@@ -65,7 +66,7 @@ cmdstr="tshark -i %s -T fields \
     -e wlan.da \
     -e wlan.fc.type_subtype \
     -e frame.time_epoch \
-    -e radiotap.chanel.freq \
+    -e radiotap.channel.freq \
     -e wlan_mgt.ssid \
     -e radiotap.channel.type"  % (interface)
 cmd=cmdstr.split()

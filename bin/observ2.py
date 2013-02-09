@@ -6,8 +6,10 @@ class Observation:
     """
     def __init__(self, sig_str, bytes=0,subtype='',time=0,freq='',ssid='',wifitype='' ):
         self.count=1
-        self.avgsize=30    # no of obs for rolling average
+        self.avgsize=50    # no of obs for rolling average
         self.rolling_samples = []
+        if sig_str:
+            self.rolling_samples.append(int(sig_str))
         self.bytes=bytes
         self.subtype=subtype
         self.time=time
@@ -15,6 +17,8 @@ class Observation:
         self.ssid=ssid
         self.wifitype=wifitype
         self.localcount=0
+        self.isAP=False
+    
 
     def ssid():
         return self.ssid
@@ -35,17 +39,24 @@ class Observation:
         return result
 
     def add(self, sig_str, bytes=0,subtype='',time=0,freq='',ssid='',wifitype='' ):
-    #def add(self, sig_str, bytes, subtype, time, freq, ssid, wifitype):
-        if len(sig_str)>0:
+        # accumlate signaldata from packet if exists and bounded
+        if len(sig_str)>1 and int(sig_str)<0 and int(sig_str)>-100:
+        #if len(sig_str)>1:
             self.count+=1
             self.localcount+=1
             if (len(subtype)>0):
                 self.subtype=subtype
-            self.time=time
-            self.freq=freq
+            if time: 
+                self.time=time
+            if freq:
+                self.freq=freq
             if(len(ssid)>0):
                 self.ssid=ssid
-            self.wifitype=wifitype
+            #beacon or probe response means this is from an ap
+            if ((self.subtype.strip() == '0x08') or (self.subtype.strip() == '0x05')):
+                self.isAP=True
+            if wifitype:
+                self.wifitype=wifitype
             #for rolling average keep last avgsize samples 
             if len(self.rolling_samples) < self.avgsize:
                 self.rolling_samples.append(int(sig_str))
