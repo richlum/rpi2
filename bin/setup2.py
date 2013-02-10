@@ -9,7 +9,10 @@ import sys
 import re
 import subprocess
 
-
+channel=''
+if (len(sys.argv) > 1):
+    channel = sys.argv[1]
+print  >> sys.stderr, "channel=" + str(channel)
 
 cmd1='airmon-ng'
 arg1='check'
@@ -46,7 +49,15 @@ else:
 if ((rc == 0) and ((interface)==None)) :
     arg1='start'
     arg2='wlan0'
-    instr = subprocess.check_output([cmd1,arg1,arg2])
+    cmd=[]
+    cmd.append(cmd1)
+    cmd.append(arg1)
+    cmd.append(arg2)
+    if (channel):
+        cmd.append(channel)
+    print >> sys.stderr, "command = " + str(cmd)
+    #instr = subprocess.check_output([cmd1,arg1,arg2])
+    instr = subprocess.check_output(cmd)
     print >>sys.stderr, instr    
     # get the interface that has been activated
     m=re.search(r"monitor mode enabled on\s(\w+)\)",instr)
@@ -70,6 +81,7 @@ cmdstr="tshark -i %s -T fields \
     -e wlan_mgt.ssid \
     -e radiotap.channel.type"  % (interface)
 cmd=cmdstr.split()
+print >>sys.stderr, "executing cmd\n" + str(cmd) 
 rc = subprocess.call(cmd)
 print  >> sys.stderr, "tshark rc = " + str(rc)  
     
