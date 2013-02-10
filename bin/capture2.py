@@ -43,9 +43,14 @@ def display_update(mac_signal):
     count=2
     for x in sorted_signals:
         #outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
-        outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP%100 ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
+        ssid=x[1].ssid + (8-len(x[1].ssid))*' '
+        outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP%100 ,x[1].freq , x[1].getlocalcount(),  ssid)
         #outstr = "%s sig = %4d  var = %5.1f %s %d  %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP , x[1].getlocalcount(),  x[1].ssid)
         screen.addstr(count,2, outstr  )
+        rest = screen.getmaxyx()[0]-1 - len(outstr)
+        if rest>0:
+            for x in rest:
+                mvaddch(count,len(outstr)+x,' ')
         count+=1
         if count>=(screen.getmaxyx()[0]-1):
             break;
