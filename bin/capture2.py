@@ -23,20 +23,33 @@ def initscreen():
 
 updatecount=0
 def display_update(mac_signal):
+    "input: dict of mac to observation data "
     global screen
     global updatecount
     screen=initscreen()
-    #print "updating"
-    sorted_signals=sorted(mac_signal.iteritems(),key=operator.itemgetter(1))
+
+    samples=[]
+    sorted_signals=[]
+    ssignals=[]
+    for entry in mac_signal:
+        samples=[]
+        samples.append(entry)
+        samples.append(mac_signal[entry])
+        samples.append(mac_signal[entry].rolling_avg())
+        ssignals.append(samples)  
+    
+    #sorted_signals.sort(key = lambda row: row[2])
+    sorted_signals=sorted(ssignals,key=(operator.itemgetter(2)), reverse=True )
     count=2
     for x in sorted_signals:
-        #outstr = "%s sig = %4d  var = %5.1f %s %2d %s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
-        outstr = "%s sig = %4d  var = %5.1f %s %d  %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP , x[1].getlocalcount(),  x[1].ssid)
+        #outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
+        outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP%100 ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
+        #outstr = "%s sig = %4d  var = %5.1f %s %d  %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP , x[1].getlocalcount(),  x[1].ssid)
         screen.addstr(count,2, outstr  )
         count+=1
         if count>=(screen.getmaxyx()[0]-1):
             break;
-    screen.addstr(screen.getmaxyx()[0]-1,2,str(updatecount))
+    screen.addstr(screen.getmaxyx()[0]-1,2,str(updatecount)+"rows="+str(count))
     updatecount+=1
     screen.refresh()
 

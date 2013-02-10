@@ -46,13 +46,17 @@ while 1:
     try:
         line = sys.stdin.readline()
         fields = line.split('\t')
+        #either send or transmit address must exist
         if (len(fields[4])>0):
             mac=fields[4]
         elif (len(fields[2])>0):
             mac=fields[2]
         else:
             continue
-        #no sa or ta
+            #no sa or ta
+        #if no signal reading go to next
+        if ((not fields[0]) or (fields[0]==0) ):
+            continue
         if (mac not in mac_sample):
             o=observ.Observation(fields[0]);
             mac_sample[mac]=o

@@ -17,7 +17,7 @@ class Observation:
         self.ssid=ssid
         self.wifitype=wifitype
         self.localcount=0
-        self.isAP=False
+        self.isAP=0
     
 
     def ssid():
@@ -40,7 +40,7 @@ class Observation:
 
     def add(self, sig_str, bytes=0,subtype='',time=0,freq='',ssid='',wifitype='' ):
         # accumlate signaldata from packet if exists and bounded
-        if len(sig_str)>1 and int(sig_str)<0 and int(sig_str)>-100:
+        if sig_str and  int(sig_str)<0 and int(sig_str)>-100:
         #if len(sig_str)>1:
             self.count+=1
             self.localcount+=1
@@ -54,7 +54,7 @@ class Observation:
                 self.ssid=ssid
             #beacon or probe response means this is from an ap
             if ((self.subtype.strip() == '0x08') or (self.subtype.strip() == '0x05')):
-                self.isAP=True
+                self.isAP+=1
             if wifitype:
                 self.wifitype=wifitype
             #for rolling average keep last avgsize samples 
