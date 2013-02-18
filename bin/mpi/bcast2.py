@@ -13,7 +13,7 @@ class SndThread(threading.Thread):
     rank = comm.Get_rank()
     def run(self):
         now = datetime.datetime.now()
-        print "%d:%s snd thread starting %s" % (rank,self.getName(),now)
+        print "%d:%s snd thread starting %s" % (self.rank,self.getName(),now)
         data = {'a': 7, 'b': 3.14, 'rank': self.rank}
         self.bcastsnd()        
     

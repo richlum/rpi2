@@ -4,6 +4,7 @@ import sys
 import curses
 import os
 import operator
+import time
 
 inited=False
 
@@ -38,14 +39,18 @@ def display_update(mac_signal):
         samples.append(mac_signal[entry].rolling_avg())
         ssignals.append(samples)  
     
-    #sorted_signals.sort(key = lambda row: row[2])
     sorted_signals=sorted(ssignals,key=(operator.itemgetter(2)), reverse=True )
     count=2
     for x in sorted_signals:
-        #outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
         ssid=x[1].ssid + (8-len(x[1].ssid))*' '
-        outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP%100 ,x[1].freq , x[1].getlocalcount(),  ssid)
-        #outstr = "%s sig = %4d  var = %5.1f %s %d  %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP , x[1].getlocalcount(),  x[1].ssid)
+        outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( \
+            x[0]  , \
+            x[1].rolling_avg() ,\
+            x[1].rolling_var(), \
+            x[1].subtype, x[1].isAP%100 ,\
+            x[1].freq , \
+            x[1].getlocalcount(),  \
+            ssid)
         screen.addstr(count,2, outstr  )
         rest = screen.getmaxyx()[0]-1 - len(outstr)
         if rest>0:
@@ -57,7 +62,7 @@ def display_update(mac_signal):
     screen.addstr(screen.getmaxyx()[0]-1,2,str(updatecount)+"rows="+str(count))
     updatecount+=1
     screen.refresh()
-
+ 
 inited=False
 mac_sample={}  # hash of observations
 count=0

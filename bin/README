@@ -1,0 +1,13 @@
+
+
+tools
+
+./prox2  - starts captureing live packets and displays wifi clients
+./start_sim.py - streams sample.pcap to util.py and displays
+
+
+files
+
+prox2 captur2.py  observ2.py  setup2.py  work together
+
+
