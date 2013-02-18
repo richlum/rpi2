@@ -16,6 +16,7 @@ import os
 import operator
 import time
 import distribute
+from distribute import Aggregegate
 import util
 from mpi4py import MPI
 
@@ -97,7 +98,7 @@ mac_sample={}  # hash of observations
 count=0
 
 (comm, rank) = initialize_mpi()
-signal_aggregator = Aggregate(comm,rank)
+signal_aggregator = Aggregegate(comm,rank)
 #start signal_aggregator mpi recieve thread 
 signal_aggregator.start()
 
