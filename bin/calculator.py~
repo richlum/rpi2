@@ -15,7 +15,7 @@ class Locator(threading.Thread):
     while (self.active):
       dataset = self.aggr.get_sig_summary()
       for i,mac in enumerate(dataset):
-	print str(i) +  str (dataset.get_signals() )
+	print str(i) +   mac  + str (dataset[mac].get_signals() )
       time.sleep(1)
       
       
