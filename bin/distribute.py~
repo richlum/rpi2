@@ -68,7 +68,10 @@ class SigSummary:
     return max( self.var0, self.var1, self.var2)
     
   def get_signals(self):
-    return (self.s0,self.s1,self.s2)
+    return (self.sig0,self.sig1,self.sig2)
+    
+  def get_xy():
+    return (self.x, self.y)
     
  
     

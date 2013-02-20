@@ -70,6 +70,9 @@ class SigSummary:
   def get_signals(self):
     return (self.sig0,self.sig1,self.sig2)
     
+  def get_xy(self):
+    return (self.x, self.y)
+    
  
     
   

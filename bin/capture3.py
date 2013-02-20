@@ -151,6 +151,7 @@ while 1:
 	      display_update(mac_sample)
 	    #save locally and broadcast out data
 	    distribute.share(signal_aggregator,mac_sample,rank)
+	    #this timer is for simulator only, remove on actual rpi implementation
             time.sleep(1)
             
     

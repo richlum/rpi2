@@ -17,8 +17,11 @@ import operator
 import time
 import distribute
 from distribute import Aggregegate
+from distribute import SigSummary
 import util
 from mpi4py import MPI
+from calculator import Locator
+
 
 options=[]
 if (len(sys.argv) > 1):
@@ -65,10 +68,8 @@ def display_update(mac_signal):
     sorted_signals=sorted(ssignals,key=(operator.itemgetter(2)), reverse=True )
     count=2
     for x in sorted_signals:
-        #outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP ,x[1].freq , x[1].getlocalcount(),  x[1].ssid)
         ssid=x[1].ssid + (8-len(x[1].ssid))*' '
         outstr = "%s sig = %4d  var = %5.1f %s %2d %4.4s %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP%100 ,x[1].freq , x[1].getlocalcount(),  ssid)
-        #outstr = "%s sig = %4d  var = %5.1f %s %d  %4d %s" %( x[0]  , x[1].rolling_avg() ,x[1].rolling_var(), x[1].subtype, x[1].isAP , x[1].getlocalcount(),  x[1].ssid)
         screen.addstr(count,2, outstr  )
         #curses leaves rest of line untouched if new line is shorter than old line
         rest = screen.getmaxyx()[0]-1 - len(outstr)
@@ -98,9 +99,12 @@ mac_sample={}  # hash of observations
 count=0
 
 (comm, rank) = initialize_mpi()
+
 signal_aggregator = Aggregegate(comm,rank)
 #start signal_aggregator mpi recieve thread 
 signal_aggregator.start()
+position_calculator =  Locator(signal_aggregator)
+position_calculator.start()
 
 while 1:
     try:
