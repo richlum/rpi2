@@ -19,7 +19,6 @@ def initscreen():
         rows=yx[0]
         cols=yx[1]
         myscr.addstr(str(rows) + "," + str(cols))
-        myscr.addstr(0,20, "RPI2 POXIMITY")
         myscr.refresh()
     return myscr
 
@@ -60,7 +59,7 @@ def display_update(mac_signal):
         count+=1
         if count>=(screen.getmaxyx()[0]-1):
             break;
-    screen.addstr(screen.getmaxyx()[0]-1,2,str(updatecount)+" rows="+str(count))
+    screen.addstr(screen.getmaxyx()[0]-1,2,str(updatecount)+"rows="+str(count))
     updatecount+=1
     screen.refresh()
  

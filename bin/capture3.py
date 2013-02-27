@@ -93,7 +93,8 @@ def initialize_mpi():
   
     
     
-my_mac_addr = util.get_mac() 
+#my_mac_addr = util.get_mac() 
+my_mac_addr = 'blank' 
 inited=False
 mac_sample={}  # hash of observations
 count=0

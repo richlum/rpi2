@@ -1,0 +1,14 @@
+if iwconfig | grep "Hedwig"
+then
+echo "Already conneced to wireless network"
+else
+echo "Setting up wireless hotspot"
+ip link set wlan0 down
+iwconfig wlan0 mode ad-hoc
+iwconfig wlan0 channel 1
+iwconfig wlan0 essid '7of9'
+iwconfig wlan0 key enterprisE!
+ip addr add 192.168.1.255/16 dev wlan0
+ip link set wlan0 up
+/usr/sbin/dhcpd wlan0
+fi
