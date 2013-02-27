@@ -1,3 +1,0 @@
-#!/bin/sh
-
-sudo ./setup2.py | ./capture2.py

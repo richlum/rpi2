@@ -1,2 +1,0 @@
-airmon-ng check wlan0 | grep -v supplicant  | grep -P -e"^[0-9]{4}"  -o 
-
