@@ -21,16 +21,13 @@ class MyFrame(wx.Frame):
     plotter.SetEnableZoom(True)
 
     # list of (x,y) test file
-    data = [(1,2), (2,10), (3,4), (4,5), (5,6), (6,7), (7,8), (8,9)]
+    data = [(1,2), (2,10), (3,4), (4,5), (5,6), (6,7), (7,8), (-8,9)]
     
-    
-    # other shapes 'circle', 'cross', 'square', 'dot', 'plus'
     marker = plot.PolyMarker(data, marker='circle')
     
-    # set up text, axis and draw
-    gc = plot.PlotGraphics([marker], 'Clients Location', 'Location by signal in X axis', 'Location by signal in Y	 axis')
-    plotter.Draw(gc, xAxis=(0,10), yAxis=(0,15))
-
+    gc = plot.PlotGraphics([marker], 'Clients Location', 'Location by signal in X axis', 'Location by signal in Y axis')
+    plotter.Draw(gc, xAxis=(-10,10), yAxis=(-15,15))
+    
     self.frame1.Show(True)
 
 application = wx.PySimpleApp()
