@@ -26,11 +26,10 @@ class MyFrame(wx.Frame):
     self.panel1 = wx.Panel(self.frame1)
     self.panel1.SetBackgroundColour("green")
     
-    MenuBar = wx.MenuBar()
-    
-    file_menu = wx.Menu()
-    
-    item = file_menu.Append(wx.ID_EXIT, text="&Exit")
+    status=self.CreateStatusBar()
+    menubar=wx.MenuBar()
+    first=wx.Menu()
+    second=wx.Menu()
     
     # Difference between wxPython26 and wxPython28 into count
     if wx.VERSION[1] < 7:
