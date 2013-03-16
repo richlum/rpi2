@@ -154,7 +154,7 @@ while 1:
 	    changed_obs={}
 	    for mac in mac_sample:
 	      if mac_sample[mac].dirty:
-		changed_obs[obs]=mac_sample[obs]
+		changed_obs[mac]=mac_sample[mac]
 	    distribute.share(signal_aggregator,changed_obs,rank)
 	    for obs in mac_sample:
 	      obs.dirty=False

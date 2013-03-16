@@ -134,7 +134,8 @@ class TestFrame(wx.Frame):
         MenuBar = wx.MenuBar()
 
         file_menu = wx.Menu()
-
+        #dictionary of SigSummary objects
+	data ={}
         item = file_menu.Append(wx.ID_EXIT, text="&Exit")
         self.Bind(wx.EVT_MENU, self.OnQuit, item)
         MenuBar.Append(file_menu, "&File")
@@ -152,6 +153,9 @@ class TestFrame(wx.Frame):
         # Initialize a drawing -- it has to be done after Show() is called
         #   so that the Windows has teh right size.
         self.NewDrawing()
+
+    def SetData(data):
+        self.data = data
 
     def OnQuit(self,event):
         self.Close(True)
@@ -177,45 +181,51 @@ class TestFrame(wx.Frame):
 
         # make some random rectangles
         l = []
-        for i in range(5):
-            w = random.randint(1,MaxX/2)
-            h = random.randint(1,MaxY/2)
-            x = random.randint(1,MaxX-w)
-            y = random.randint(1,MaxY-h)
+        for mac in self.data:
+            w = 2
+            h = 2
+            (x,y) = mac.get_xy()
+            #translate so that origin is in center
+            x+=MaxX/2
+            y+=MaxY/2
             l.append( (x,y,w,h) )
         DrawData["Rectangles"] = l
 
         # make some random ellipses
-        l = []
-        for i in range(5):
-            w = random.randint(1,MaxX/2)
-            h = random.randint(1,MaxY/2)
-            x = random.randint(1,MaxX-w)
-            y = random.randint(1,MaxY-h)
-            l.append( (x,y,w,h) )
-        DrawData["Ellipses"] = l
-
-        # Polygons
-        l = []
-        for i in range(3):
-            points = []
-            for j in range(random.randint(3,8)):
-                point = (random.randint(1,MaxX),random.randint(1,MaxY))
-                points.append(point)
-            l.append(points)
-        DrawData["Polygons"] = l
-
+#        l = []
+#        for i in range(5):
+#            w = random.randint(1,MaxX/2)
+#            h = random.randint(1,MaxY/2)
+#            x = random.randint(1,MaxX-w)
+#            y = random.randint(1,MaxY-h)
+#            l.append( (x,y,w,h) )
+#        DrawData["Ellipses"] = l
+#
+#        # Polygons
+#        l = []
+#        for i in range(3):
+#            points = []
+#            for j in range(random.randint(3,8)):
+#                point = (random.randint(1,MaxX),random.randint(1,MaxY))
+#                points.append(point)
+#            l.append(points)
+#        DrawData["Polygons"] = l
+#
         return DrawData
 
 class DemoApp(wx.App):
     def OnInit(self):
         frame = TestFrame()
         self.SetTopWindow(frame)
-        while(True):
-            frame.NewDrawing()
-            time.sleep(2)
+        self.MainLoop()
+#        while(True):
+#        frame.NewDrawing()
+#            time.sleep(2)
 
         return True
+
+    def getFrame(self):
+        return frame
 
 if __name__ == "__main__":
     app = DemoApp(0)

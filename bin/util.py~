@@ -5,15 +5,15 @@ import sys
 import inspect
 debug=True
 
-def dbg(msg=""):
+def dbg(rank=99,msg=""):
   if debug:
     callerframerecord = inspect.stack()[1]
     frame=callerframerecord[0]
     info=inspect.getframeinfo(frame)
     if len(msg)<=0:
-      print info.filename + ":" + info.function +":"+str(info.lineno)
+      print str(rank)+":"+info.filename + ":" + info.function +":"+str(info.lineno)
     else:
-      print info.filename + ":" + info.function +":"+str(info.lineno) + ": " + msg
+      print str(rank)+":"+info.filename + ":" + info.function +":"+str(info.lineno) + ": " + msg
 
 
 

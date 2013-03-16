@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import threading
 import time
+import dbufwindow
 
 class Locator(threading.Thread):
   def __init__(self,aggregator):
@@ -22,7 +23,15 @@ class Locator(threading.Thread):
       print "counter = %d" % counter
       time.sleep(1)
       
-      
+  #def run(self):
+    #counter=0
+    #display=dbufwindow.DemoApp(0)
+    #frame=display.getFrame()
+    #while (self.active):
+      #dataset = self.aggr.get_sig_summary()
+      #frame.setData(dataset)
+      #frame.NewDrawing()
+      #time.sleep(1)
       
       
       #use aggr.get_sig_summary to get a SigSummary Object.(called dataset here)

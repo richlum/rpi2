@@ -156,8 +156,8 @@ while 1:
 	      if mac_sample[mac].dirty:
 		changed_obs[mac]=mac_sample[mac]
 	    distribute.share(signal_aggregator,changed_obs,rank)
-	    for obs in mac_sample:
-	      obs.dirty=False
+	    for mac in mac_sample:
+	      mac_sample[mac].dirty=False
 	    #this timer is for simulator only, remove on actual rpi implementation
             time.sleep(1)
             

@@ -3,7 +3,7 @@ import subprocess
 import re
 import sys
 import inspect
-debug=True
+debug=False
 
 def dbg(rank=99,msg=""):
   if debug:
