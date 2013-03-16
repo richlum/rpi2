@@ -12,11 +12,14 @@ class Locator(threading.Thread):
     self.active=False
     
   def run(self):
+    counter=0
     while (self.active):
       dataset = self.aggr.get_sig_summary()
       for i,mac in enumerate(dataset):
 	print str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
 	  str(dataset[mac].get_xy())
+      counter+=1
+      print "counter = %d" % counter
       time.sleep(1)
       
       
