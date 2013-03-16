@@ -18,6 +18,12 @@ import util
 
 
 DICT_DIST = 10
+POSITION_DIST = 20
+PIMAC_DIST = 30
+AP_DIST = 40
+CMD_STOP = 50
+CMD_START = 60
+CMD_CLEARSTALE = 70
 
 def initialize_mpi():
     """
@@ -52,6 +58,7 @@ class SigSummary:
     self.var2=var2
     self.x=xpos
     self.y=ypos
+
   
   def update(self, sig0, sig1, sig2, var0, var1, var2):
     self.sig0=sig0
@@ -126,6 +133,7 @@ class Aggregegate(threading.Thread):
 	 copy_mac_obs=mac_observations.copy()
 	 self.Lock_obs.release()
 	 util.dbg(self.rank,"unlocked Lock_obs")
+	 
 	 self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
 	 #print "sent observations"
 	 
@@ -207,6 +215,16 @@ class Aggregegate(threading.Thread):
     self.Lock_sigsum.release()
     return sigsum_copy
   
+ 
+  def append_sigsummary(self,calcresults):
+    """
+    with another pi calculates position, use this method to add
+    calculated results into local list of position results
+    note this will also overwrite reported signals s1 s2 s3
+    """
+    self.Lock_sigsum.acquire()
+    self.sigsum.update(calcresults)
+    self.Lock_sigsum.release()
   
   def receive_mac_obs(self):
       """
@@ -216,7 +234,40 @@ class Aggregegate(threading.Thread):
       stat = MPI.Status()
       data = self.comm.recv( source=MPI.ANY_SOURCE , tag=MPI.ANY_TAG, status=stat )
       #print "received obs from %d\n" % stat.Get_source()
-      self.push_obs(data, stat.Get_source() )
+      data_tag = stat.Get_tag()
+      if data_tag == DICT_DIST:
+	self.push_obs(data, stat.Get_source() )
+      elif data_tag == CALC_DIST:
+	#we are getting distributed calculation results. collate them
+	# the send side should be sending us a dictionary of SigSummary
+	# Objects with the x y co-ordinates populated.
+	#TODO: needs testing
+	self.append_sigsummary(data)
+	pass
+      elif data_tag == POSITION_DIST:
+	#rank zero signal strenght to reference ap and translated address
+	#for ability to move monitoring pi's
+	pass
+      elif data_tag == PIMAC_DIST:
+	#TODO: build datastructure to hold the mac of the pi and rank
+	# build to estefan requirements
+	pass
+      elif data_tag == AP_DIST:
+	#TODO: build datastructure to hold all AP mac and ssid (if avail)
+	# build to estefan requirements
+	pass
+      elif data_tag == CMD_STOP:
+	#TODO: set active off for all mac
+	#at this point, design may not keep recvg messages for start
+	#review code to implement
+	pass
+      elif data_tag == CMD_START:
+	#TODO:
+	pass
+      elif data_tag == CMD_CLEARSTALE:
+	#TODO: initiate wipe of mac addresses that havent been updated in a while
+	pass
+      
       util.dbg(self.rank)
       return data
       
