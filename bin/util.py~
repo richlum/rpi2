@@ -2,6 +2,20 @@
 import subprocess
 import re
 import sys
+import inspect
+debug=True
+
+def dbg(msg=""):
+  if debug:
+    callerframerecord = inspect.stack()[1]
+    frame=callerframerecord[0]
+    info=inspect.getframeinfo(frame)
+    if len(msg)<=0:
+      print info.filename + ":" + info.function +":"+str(info.lineno)
+    else:
+      print info.filename + ":" + info.function +":"+str(info.lineno) + ": " + msg
+
+
 
 def get_mac():
   cmdstr = 'ifconfig wlan0'
@@ -32,4 +46,6 @@ def stream_pcap(fn='sample.pcap'):
   print >>sys.stderr, "executing cmd\n" + str(cmd)
   rc=subprocess.call(cmd)
   print >>sys.stderr, "tshark rc = " + str(rc)
-  
+ 
+
+ 

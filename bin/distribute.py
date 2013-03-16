@@ -14,7 +14,7 @@
 from mpi4py import MPI
 import threading
 import thread
-
+import util 
 
 
 DICT_DIST = 10
@@ -53,6 +53,14 @@ class SigSummary:
     self.x=xpos
     self.y=ypos
   
+  def update(self, sig0, sig1, sig2, var0, var1, var2):
+    self.sig0=sig0
+    self.sig1=sig1
+    self.sig2=sig2
+    self.var0=var0
+    self.var1=var1
+    self.var2=var2
+  
   def set_xy(xval,yval):
     """
     Utility class for position calculator to deposit results
@@ -85,6 +93,7 @@ class Aggregegate(threading.Thread):
   def run(self):
     print "aggregator run thread"
     while(self.active):
+      util.dbg(self.rank)
       observations = self.receive_mac_obs()
       #print "recv loop:" + str(observations)
       
@@ -96,22 +105,30 @@ class Aggregegate(threading.Thread):
     self.comm=comm
     self.rank=rank
     self.Lock_obs = thread.allocate_lock()
+    self.Lock_sigsum =  thread.allocate_lock()
     self.active=True
     self.observationlists={}
+    self.sigsum={}
     print "initialized"
     
     
   def shutdown(self):
+    util.dbg(self.rank)
     self.active=False
     
   def distrib(self, mac_observations):
     commsize = self.comm.Get_size()
+    util.dbg(self.rank)
     for ranks in range(commsize):
       if ranks != self.rank:
 	 self.Lock_obs.acquire()
-	 self.comm.send(mac_observations, dest=ranks, tag=DICT_DIST)
-	 #print "sent observations"
+	 util.dbg(self.rank,"locked Lock_obs")
+	 copy_mac_obs=mac_observations.copy()
 	 self.Lock_obs.release()
+	 util.dbg(self.rank,"unlocked Lock_obs")
+	 self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
+	 #print "sent observations"
+	 
   
   def push_obs(self,mac_observations, src_rank):
     """
@@ -119,9 +136,12 @@ class Aggregegate(threading.Thread):
     that generated the data
     """
     #todo implement locks around the observationlists
+    util.dbg(self.rank)
     self.Lock_obs.acquire()
-    self.observationlists[src_rank]=mac_observations
+    util.dbg(self.rank,"locked Lock_obs")
+    self.observationlists[src_rank]=mac_observations.copy()
     self.Lock_obs.release()
+    util.dbg(self.rank,"unlocked Lock_obs")
     #print "push observationlists"
     #print self.observationlists
     
@@ -136,15 +156,18 @@ class Aggregegate(threading.Thread):
     inactive clients never age out and are currently treated same as current active
     client observations.
     """
-    sig_summary={}
+    #sig_summary={}
+    
     self.Lock_obs.acquire()
     if len(self.observationlists) != 3:
       # data not present yet
       self.Lock_obs.release()
-      return sig_summary
-    for keys in self.observationlists:
-	print keys
-	print "----"
+      util.dbg(self.rank)
+      return self.sigsum.copy()
+#   for keys in self.observationlists:
+#	print keys
+#	print "----"
+    util.dbg(self.rank)
     for macaddr in self.observationlists[0]:
       if (macaddr in self.observationlists[0] and \
 	  macaddr in self.observationlists[1] and \
@@ -153,19 +176,36 @@ class Aggregegate(threading.Thread):
 	    obs0 = self.observationlists[0][macaddr]
 	    obs1 = self.observationlists[1][macaddr]
 	    obs2 = self.observationlists[2][macaddr]
-	    sig_summary[macaddr]=SigSummary( \
-	      obs0.rolling_avg(), \
-	      obs1.rolling_avg(), \
-	      obs2.rolling_avg(), \
-	      obs0.rolling_var(), \
-	      obs1.rolling_var(), \
-	      obs2.rolling_var() )
+	    self.Lock_sigsum.acquire()
+	    if macaddr not in self.sigsum:
+	      self.sigsum[macaddr]=SigSummary( \
+		obs0.rolling_avg(), \
+		obs1.rolling_avg(), \
+		obs2.rolling_avg(), \
+		obs0.rolling_var(), \
+		obs1.rolling_var(), \
+		obs2.rolling_var() )
+	    else:
+	      ss=self.sigsum[macaddr]
+	      ss.update( \
+		obs0.rolling_avg(), \
+		obs1.rolling_avg(), \
+		obs2.rolling_avg(), \
+		obs0.rolling_var(), \
+		obs1.rolling_var(), \
+		obs2.rolling_var() )
+	    self.Lock_sigsum.release()
       else:
-	#dont bother processing unless we have all 3 observations
+	#dont bother processing unless we have all 3 observation
 	continue
     self.Lock_obs.release()
     pass
-    return sig_summary
+    self.Lock_sigsum.acquire()
+    #copy results and send to requestor. needs to be a copy to
+    #prevent simultaneus read/write to same dictionary
+    sigsum_copy=self.sigsum.copy()
+    self.Lock_sigsum.release()
+    return sigsum_copy
   
   
   def receive_mac_obs(self):
@@ -177,5 +217,6 @@ class Aggregegate(threading.Thread):
       data = self.comm.recv( source=MPI.ANY_SOURCE , tag=MPI.ANY_TAG, status=stat )
       #print "received obs from %d\n" % stat.Get_source()
       self.push_obs(data, stat.Get_source() )
+      util.dbg(self.rank)
       return data
       

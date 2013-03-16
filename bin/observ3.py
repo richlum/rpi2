@@ -19,6 +19,7 @@ class Observation:
         self.localcount=0
         self.isAP=0
         self.pi_mac=pi_mac
+        self.dirty=True
     
 
     def ssid():
