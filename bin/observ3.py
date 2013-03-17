@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from datetime import datetime
 
 class Observation:
     """
@@ -13,6 +14,7 @@ class Observation:
         self.bytes=bytes
         self.subtype=subtype
         self.time=time
+        self.ts=datetime.now()
         self.freq=freq
         self.ssid=ssid
         self.wifitype=wifitype
@@ -50,7 +52,7 @@ class Observation:
             self.localcount+=1
             self.dirty=True
             if (len(pi_mac)>0):
-		self.pi_mac= pi_mac
+              		self.pi_mac= pi_mac
             if (len(subtype)>0):
                 self.subtype=subtype
             if time: 
@@ -70,6 +72,12 @@ class Observation:
             else:
                 self.rolling_samples.pop(0)
                 self.rolling_samples.append(int(sig_str))
+    
+    def settimestamp(self, ts):
+      self.ts=ts
+
+    def gettimestamp(self):
+      return self.ts
 
 
     def rolling_avg(self):

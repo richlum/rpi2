@@ -15,7 +15,7 @@ from mpi4py import MPI
 import threading
 import thread
 import util 
-
+from datetime import datetime
 
 DICT_DIST = 10
 POSITION_DIST = 20
@@ -138,6 +138,26 @@ class Aggregegate(threading.Thread):
         dbgmsg = str(len(copy_mac_obs)) + " macs sent"
         util.dbg(self.rank,dbgmsg)
    
+  def timestamp(self,mac_obs):
+    currtime=datetime.now()
+    for mac in mac_obs:
+      mac_obs[mac].settimestamp(currtime)
+
+  def removeold(self,mac_obs):
+    maxdelta = 30
+    oldsize= len(mac_obs)
+    currenttime=datetime.now()
+    
+    newlist={}
+    for mac in mac_obs:
+      delta = mac_obs[mac].gettimestamp() - currenttime
+      if delta.seconds < maxdelta :
+        newlist[mac]=mac_obs[mac]
+    mac_obs=newlist
+    newsize = len(mac_obs)
+    if newsize != oldsize :
+      print "changed obs size from " + str(oldsize) + " to " + str(newsize)
+    return mac_obs
   
   def push_obs(self,mac_observations, src_rank):
     """
@@ -146,6 +166,7 @@ class Aggregegate(threading.Thread):
     """
     #todo implement locks around the observationlists
     obslist={}
+    self.timestamp(mac_observations)
     util.dbg(self.rank)
     self.Lock_obs.acquire()
 #print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
@@ -154,6 +175,7 @@ class Aggregegate(threading.Thread):
      self.observationlists[src_rank]=mac_observations.copy()
     else: 
      obslist=self.observationlists[src_rank]
+     mac_observations = self.removeold(mac_observations)
      obslist.update(mac_observations)
      self.observationlists[src_rank]=obslist.copy()
      print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
