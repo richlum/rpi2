@@ -131,7 +131,8 @@ while 1:
         # 10 - channel.type (a/b/g)
         # my_mac_addr is mac address of observing pi (source of dbm readings)
         if (mac not in mac_sample):
-	    #new mac address needs new observation
+        #new mac address needs new observation
+            #print "adding " + mac
             o=observ3.Observation(fields[0], \
                 fields[1], \
                 fields[6], \
@@ -142,35 +143,36 @@ while 1:
                 my_mac_addr); 
             mac_sample[mac]=o
         else:
-	    #existing mac address, just update signal
+            #existing mac address, just update signal
+            #print "updating " + mac
             mac_sample[mac].add(fields[0])
 
         count+=1
         if(count>100):
             count=0
             if proxdisplay:
-	      display_update(mac_sample)
-	    #save locally and broadcast out data
-	    changed_obs={}
-	    for mac in mac_sample:
-	      if mac_sample[mac].dirty:
-		changed_obs[mac]=mac_sample[mac]
-	    distribute.share(signal_aggregator,changed_obs,rank)
-	    for mac in mac_sample:
-	      mac_sample[mac].dirty=False
-	    #this timer is for simulator only, remove on actual rpi implementation
+              display_update(mac_sample)
+        #save locally and broadcast out data
+#        changed_obs={}
+#        for mac in mac_sample:
+#          if mac_sample[mac].dirty:
+#            changed_obs[mac]=mac_sample[mac]
+#            distribute.share(signal_aggregator,changed_obs,rank)
+#        for mac in mac_sample:
+#          mac_sample[mac].dirty=False
+          #this timer is for simulator only, remove on actual rpi implementation
+            #print str(rank) + ":distribute qty macs "  + str(len(mac_sample))
+            distribute.share(signal_aggregator,mac_sample,rank)
+            mac_sample={}
             time.sleep(1)
             
     
 
     except KeyboardInterrupt:
-	signal_aggregator.shutdown()
-	comm.Disconnect()
-        break
+      signal_aggregator.shutdown()
+      comm.Disconnect()
+      break
 
     if not line:
-       continue
+      continue
     
-
-#    print >> sys.stderr, "*" + str(fields)
-

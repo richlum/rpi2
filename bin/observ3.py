@@ -20,6 +20,7 @@ class Observation:
         self.isAP=0
         self.pi_mac=pi_mac
         self.dirty=True
+        self.lastlocalcount=0
     
 
     def ssid():
@@ -36,6 +37,7 @@ class Observation:
         """
         everytime value is read reset to zero. incr by add (signal sample)
         """
+        self.lastlocalcount=self.localcount
         result = self.localcount
         self.localcount=0
         return result
@@ -46,6 +48,7 @@ class Observation:
         #if len(sig_str)>1:
             self.count+=1
             self.localcount+=1
+            self.dirty=True
             if (len(pi_mac)>0):
 		self.pi_mac= pi_mac
             if (len(subtype)>0):

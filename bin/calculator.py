@@ -15,12 +15,21 @@ class Locator(threading.Thread):
   def run(self):
     counter=0
     while (self.active):
+
       dataset = self.aggr.get_sig_summary()
-      for i,mac in enumerate(dataset):
-	print str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
-	  str(dataset[mac].get_xy())
-      counter+=1
-      print "counter = %d" % counter
+      if (self.aggr.rank == 0):
+        for i,mac in enumerate(dataset):
+          print str(self.aggr.rank) +":"+ str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
+            str(dataset[mac].get_xy())
+        counter+=1
+        print "counter = %d" % counter
+      else:
+        #TODO:  TONY  this is where your logic for distributed calculations should be integrated to
+        # send data if not rank 0.   Matching recv logic in distribute.py recv thread 
+        # we need an mpisend here using tag  POSITION_DIST    (which needs to be put into a common file
+        # accessible from both distribute.py and calculator.py
+        #send calculated data back to rank 0
+        pass
       time.sleep(1)
       
   #def run(self):

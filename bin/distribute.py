@@ -128,15 +128,16 @@ class Aggregegate(threading.Thread):
     util.dbg(self.rank)
     for ranks in range(commsize):
       if ranks != self.rank:
-	 self.Lock_obs.acquire()
-	 util.dbg(self.rank,"locked Lock_obs")
-	 copy_mac_obs=mac_observations.copy()
-	 self.Lock_obs.release()
-	 util.dbg(self.rank,"unlocked Lock_obs")
-	 
-	 self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
-	 #print "sent observations"
-	 
+        self.Lock_obs.acquire()
+        util.dbg(self.rank,"locked Lock_obs")
+        copy_mac_obs=mac_observations.copy()
+        self.Lock_obs.release()
+        util.dbg(self.rank,"unlocked Lock_obs")
+   
+        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
+        dbgmsg = str(len(copy_mac_obs)) + " macs sent"
+        util.dbg(self.rank,dbgmsg)
+   
   
   def push_obs(self,mac_observations, src_rank):
     """
@@ -144,68 +145,75 @@ class Aggregegate(threading.Thread):
     that generated the data
     """
     #todo implement locks around the observationlists
+    obslist={}
     util.dbg(self.rank)
     self.Lock_obs.acquire()
+#print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
     util.dbg(self.rank,"locked Lock_obs")
-    self.observationlists[src_rank]=mac_observations.copy()
+    if src_rank not in self.observationlists :
+     self.observationlists[src_rank]=mac_observations.copy()
+    else: 
+     obslist=self.observationlists[src_rank]
+     obslist.update(mac_observations)
+     self.observationlists[src_rank]=obslist.copy()
+     print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
     self.Lock_obs.release()
     util.dbg(self.rank,"unlocked Lock_obs")
-    #print "push observationlists"
-    #print self.observationlists
+    ## if you want to verify updates being entered uncomnent the following
+    #for mac in mac_observations:
+#      if (mac_observations[mac].count>2):
+#        print str(self.rank) + ": " + mac + " " + str(mac_observations[mac].rolling_avg())  +" activity=" + str(mac_observations[mac].count)
     
   def get_sig_summary(self):
     """
     create a SigSummary object that provides current view of all clients collated
     signal information from 3 pi observers
     
-    needs to implement locks to prevent multiple threaded read/write collisions
-    
-    todo: aging out of stale data. Active data automatically is averaged out but
-    inactive clients never age out and are currently treated same as current active
-    client observations.
     """
-    #sig_summary={}
+    #self.sigsum={}
     
     self.Lock_obs.acquire()
+    print str(self.rank) + ": len obs list = " +  str(len(self.observationlists) ) 
     if len(self.observationlists) != 3:
       # data not present yet
       self.Lock_obs.release()
       util.dbg(self.rank)
       return self.sigsum.copy()
-#   for keys in self.observationlists:
-#	print keys
-#	print "----"
-    util.dbg(self.rank)
+    size0 = str(len(self.observationlists[0]))
+    size1 = str(len(self.observationlists[1]))
+    size2 = str(len(self.observationlists[2]))
+    dbgmsg  = "size of list (0,1,2) = " + size0 + ", " + size1 + ", " + size2 
+    util.dbg(self.rank,dbgmsg)
     for macaddr in self.observationlists[0]:
       if (macaddr in self.observationlists[0] and \
-	  macaddr in self.observationlists[1] and \
-	  macaddr in self.observationlists[2]):
-	    
-	    obs0 = self.observationlists[0][macaddr]
-	    obs1 = self.observationlists[1][macaddr]
-	    obs2 = self.observationlists[2][macaddr]
-	    self.Lock_sigsum.acquire()
-	    if macaddr not in self.sigsum:
-	      self.sigsum[macaddr]=SigSummary( \
-		obs0.rolling_avg(), \
-		obs1.rolling_avg(), \
-		obs2.rolling_avg(), \
-		obs0.rolling_var(), \
-		obs1.rolling_var(), \
-		obs2.rolling_var() )
-	    else:
-	      ss=self.sigsum[macaddr]
-	      ss.update( \
-		obs0.rolling_avg(), \
-		obs1.rolling_avg(), \
-		obs2.rolling_avg(), \
-		obs0.rolling_var(), \
-		obs1.rolling_var(), \
-		obs2.rolling_var() )
-	    self.Lock_sigsum.release()
-      else:
-	#dont bother processing unless we have all 3 observation
-	continue
+        macaddr in self.observationlists[1] and \
+        macaddr in self.observationlists[2]):
+      
+        obs0 = self.observationlists[0][macaddr]
+        obs1 = self.observationlists[1][macaddr]
+        obs2 = self.observationlists[2][macaddr]
+        self.Lock_sigsum.acquire()
+        if macaddr not in self.sigsum:
+          self.sigsum[macaddr]=SigSummary( \
+            obs0.rolling_avg(), \
+            obs1.rolling_avg(), \
+            obs2.rolling_avg(), \
+            obs0.rolling_var(), \
+            obs1.rolling_var(), \
+            obs2.rolling_var() )
+        else:
+          ss=self.sigsum[macaddr]
+          ss.update( \
+            obs0.rolling_avg(), \
+            obs1.rolling_avg(), \
+            obs2.rolling_avg(), \
+            obs0.rolling_var(), \
+            obs1.rolling_var(), \
+            obs2.rolling_var() )
+        self.Lock_sigsum.release()
+      else: #mac not in all three observation lists
+        #dont bother processing unless we have all 3 observation
+        continue
     self.Lock_obs.release()
     pass
     self.Lock_sigsum.acquire()
@@ -213,6 +221,8 @@ class Aggregegate(threading.Thread):
     #prevent simultaneus read/write to same dictionary
     sigsum_copy=self.sigsum.copy()
     self.Lock_sigsum.release()
+    dbgmsg= str(len(sigsum_copy)) + "sigsumm items"
+    util.dbg(self.rank, dbgmsg)
     return sigsum_copy
   
  
@@ -236,37 +246,37 @@ class Aggregegate(threading.Thread):
       #print "received obs from %d\n" % stat.Get_source()
       data_tag = stat.Get_tag()
       if data_tag == DICT_DIST:
-	self.push_obs(data, stat.Get_source() )
+        self.push_obs(data, stat.Get_source() )
       elif data_tag == CALC_DIST:
-	#we are getting distributed calculation results. collate them
-	# the send side should be sending us a dictionary of SigSummary
-	# Objects with the x y co-ordinates populated.
-	#TODO: needs testing
-	self.append_sigsummary(data)
-	pass
+        #we are getting distributed calculation results. collate them
+        # the send side should be sending us a dictionary of SigSummary
+        # Objects with the x y co-ordinates populated.
+        #TODO: needs testing
+        self.append_sigsummary(data)
+        pass
       elif data_tag == POSITION_DIST:
-	#rank zero signal strenght to reference ap and translated address
-	#for ability to move monitoring pi's
-	pass
+        #rank zero signal strenght to reference ap and translated address
+        #for ability to move monitoring pi's
+        pass
       elif data_tag == PIMAC_DIST:
-	#TODO: build datastructure to hold the mac of the pi and rank
-	# build to estefan requirements
-	pass
+        #TODO: build datastructure to hold the mac of the pi and rank
+        # build to estefan requirements
+        pass
       elif data_tag == AP_DIST:
-	#TODO: build datastructure to hold all AP mac and ssid (if avail)
-	# build to estefan requirements
-	pass
+        #TODO: build datastructure to hold all AP mac and ssid (if avail)
+        # build to estefan requirements
+        pass
       elif data_tag == CMD_STOP:
-	#TODO: set active off for all mac
-	#at this point, design may not keep recvg messages for start
-	#review code to implement
-	pass
+        #TODO: set active off for all mac
+        #at this point, design may not keep recvg messages for start
+        #review code to implement
+        pass
       elif data_tag == CMD_START:
-	#TODO:
-	pass
+        #TODO:
+        pass
       elif data_tag == CMD_CLEARSTALE:
-	#TODO: initiate wipe of mac addresses that havent been updated in a while
-	pass
+        #TODO: initiate wipe of mac addresses that havent been updated in a while
+        pass
       
       util.dbg(self.rank)
       return data

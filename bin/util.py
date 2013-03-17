@@ -5,6 +5,7 @@ import sys
 import inspect
 debug=False
 
+
 def dbg(rank=99,msg=""):
   if debug:
     callerframerecord = inspect.stack()[1]
