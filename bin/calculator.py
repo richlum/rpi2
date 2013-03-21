@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import threading
 import time
-import dbufwindow
+import dbufwindow as db
 import distribute
 
 #Tony Tes 2t
@@ -11,6 +11,11 @@ class Locator(threading.Thread):
     self.aggr = aggregator
     self.active=True
     self.MAX_PI_COUNT = MAX_NUM_PI
+    if (self.aggr.rank == 0):
+      self.app = db.DemoApp(0)
+      self.frame = self.app.getFrame()
+      print "locator inited"
+
 
   def off(self):
     self.active=False
@@ -27,6 +32,8 @@ class Locator(threading.Thread):
 	  # Update GUI
           print str(self.aggr.rank) +":"+ str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
             str(dataset[mac].get_xy()) + " " + str(dataset[mac].getcount())
+        self.frame.SetData(dataset)
+        self.frame.NewDrawing()
 
       else:
 	# ADDED BY TONY

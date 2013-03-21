@@ -3,6 +3,7 @@
 import wx
 import random
 import time
+import threading
 
 # http://wiki.wxpython.org/DoubleBufferedDrawing
 
@@ -135,7 +136,7 @@ class TestFrame(wx.Frame):
 
         file_menu = wx.Menu()
         #dictionary of SigSummary objects
-	data ={}
+        self.userdata ={}
         item = file_menu.Append(wx.ID_EXIT, text="&Exit")
         self.Bind(wx.EVT_MENU, self.OnQuit, item)
         MenuBar.Append(file_menu, "&File")
@@ -154,8 +155,9 @@ class TestFrame(wx.Frame):
         #   so that the Windows has teh right size.
         self.NewDrawing()
 
-    def SetData(data):
-        self.data = data
+    def SetData(self,data):
+        print "frame data set received " + str( len(data))
+        self.userdata = data
 
     def OnQuit(self,event):
         self.Close(True)
@@ -181,15 +183,20 @@ class TestFrame(wx.Frame):
 
         # make some random rectangles
         l = []
-        for mac in self.data:
-            w = 2
-            h = 2
-            (x,y) = mac.get_xy()
-            #translate so that origin is in center
-            x+=MaxX/2
-            y+=MaxY/2
-            l.append( (x,y,w,h) )
-        DrawData["Rectangles"] = l
+        if len(self.userdata)>0:
+          #print "userdata = " + str(self.userdata)
+          for mac in self.userdata:
+              w = 2
+              h = 2
+              (x,y,z) = self.userdata[mac].get_signals()
+              #(x,y) = self.userdata[mac].get_xy()
+              #x+=random.randint(-60,60)
+              #y+=random.randint(-60,60)
+              #translate so that origin is in center
+              x+=MaxX/2
+              y+=MaxY/2
+              l.append( (x,y,w,h) )
+          DrawData["Rectangles"] = l
 
         # make some random ellipses
 #        l = []
@@ -213,11 +220,11 @@ class TestFrame(wx.Frame):
 #
         return DrawData
 
-class DemoApp(wx.App):
+class DemoApp(wx.App,threading.Thread):
     def OnInit(self):
-        frame = TestFrame()
-        self.SetTopWindow(frame)
-        self.MainLoop()
+        self.frame = TestFrame()
+        self.SetTopWindow(self.frame)
+#        self.run()
 #        while(True):
 #        frame.NewDrawing()
 #            time.sleep(2)
@@ -225,7 +232,10 @@ class DemoApp(wx.App):
         return True
 
     def getFrame(self):
-        return frame
+        return self.frame
+
+    def run(self):
+        self.MainLoop()
 
 if __name__ == "__main__":
     app = DemoApp(0)
