@@ -89,7 +89,8 @@ def initialize_mpi():
   """
   comm=MPI.COMM_WORLD
   rank=comm.Get_rank()
-  return (comm,rank)
+  size=comm.Get_size()
+  return (comm,rank,size)
   
     
     
@@ -99,13 +100,13 @@ inited=False
 mac_sample={}  # hash of observations
 count=0
 
-(comm, rank) = initialize_mpi()
+(comm, rank,size) = initialize_mpi()
 
 ## TONY HARDCODED
 ## TODO : Dynamically determine max # of RPI
 MAX_NUM_PI = 3
 
-signal_aggregator = Aggregegate(comm,rank)
+signal_aggregator = Aggregegate(comm,rank,size)
 #start signal_aggregator mpi recieve thread 
 signal_aggregator.start()
 position_calculator =  Locator(signal_aggregator, MAX_NUM_PI)

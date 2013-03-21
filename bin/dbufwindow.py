@@ -189,6 +189,8 @@ class TestFrame(wx.Frame):
               w = 2
               h = 2
               (x,y,z) = self.userdata[mac].get_signals()
+              x=x*2
+              y=y*2
               #(x,y) = self.userdata[mac].get_xy()
               #x+=random.randint(-60,60)
               #y+=random.randint(-60,60)

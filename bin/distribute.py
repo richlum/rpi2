@@ -117,13 +117,14 @@ class Aggregegate(threading.Thread):
       observations = self.receive_mac_obs()
       #print "recv loop:" + str(observations)
       
-  def __init__(self, comm, rank):
+  def __init__(self, comm, rank, size):
     """
     save mpi parameters so that Aggregate and provide send/recv services
     """
     super(Aggregegate,self).__init__()
     self.comm=comm
     self.rank=rank
+    self.size=size
     self.Lock_obs = thread.allocate_lock()
     self.Lock_sigsum =  thread.allocate_lock()
     self.active=True
@@ -133,7 +134,16 @@ class Aggregegate(threading.Thread):
     print "initialized"
     
   def send_location_summary_helper(self, dest_rank, sig_sum, tag_type):
-    self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+    if dest_rank<0  or dest_rank> self.size :
+        print "############# dest rank = %d" % dest_rank
+        return
+    if sig_sum:
+        dbgmsg = "%d:%d send loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
+        util.dbg(self.rank, dbgmsg)
+        self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+        util.dbg(self.rank, dbgmsg)
+    else:
+        print "###################sig_sum=NULL, nothing sent"
  
   def shutdown(self):
     util.dbg(self.rank)
@@ -161,10 +171,10 @@ class Aggregegate(threading.Thread):
             else:
                 tosend=copy_mac_obs
                 copy_mac_obs={}
-            self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
             qty=len(copy_mac_obs)
-            
-         
+            print "%d: %d sending size %d" % (self.rank, ranks, qty)    
+            self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+             
 #        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
         dbgmsg = str(len(copy_mac_obs)) + " macs sent"
         util.dbg(self.rank,dbgmsg)
@@ -211,12 +221,13 @@ class Aggregegate(threading.Thread):
      obslist=self.observationlists[src_rank]
      obslist = self.removeold(mac_observations,obslist)
      obslist.update(mac_observations)
-     self.observationlists[src_rank]=obslist.copy()
+     #self.observationlists[src_rank]=obslist.copy()
+     self.observationlists[src_rank]=mac_observations.copy()
 #todo: something is wrong with observation list, it grows unbounded 
 # and does not match macobs size    
-#    print "observationlist len = %d" % len(self.observationlists[src_rank])
+    print "observationlist len = %d" % len(self.observationlists[src_rank])
     self.Lock_obs.release()
-#    print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
+    print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
 #    print str(self.rank) + ":length of macobs list = " + str(len(mac_observations))
     util.dbg(self.rank,"unlocked Lock_obs")
     ## if you want to verify updates being entered uncomnent the following
@@ -245,6 +256,9 @@ class Aggregegate(threading.Thread):
     size2 = str(len(self.observationlists[2]))
     dbgmsg  = "size of list (0,1,2) = " + size0 + ", " + size1 + ", " + size2 
     util.dbg(self.rank,dbgmsg)
+    self.Lock_sigsum.acquire()
+    if len(self.sigsum)>100:
+      self.sigsum={}
     for macaddr in self.observationlists[0]:
       if (macaddr in self.observationlists[0] and \
         macaddr in self.observationlists[1] and \
@@ -253,28 +267,29 @@ class Aggregegate(threading.Thread):
         obs0 = self.observationlists[0][macaddr]
         obs1 = self.observationlists[1][macaddr]
         obs2 = self.observationlists[2][macaddr]
-        self.Lock_sigsum.acquire()
-        if macaddr not in self.sigsum:
-          self.sigsum[macaddr]=SigSummary( \
+    #    self.Lock_sigsum.acquire()
+        #if macaddr not in self.sigsum:
+        self.sigsum[macaddr]=SigSummary( \
             obs0.rolling_avg(), \
             obs1.rolling_avg(), \
             obs2.rolling_avg(), \
             obs0.rolling_var(), \
             obs1.rolling_var(), \
             obs2.rolling_var() )
-        else:
-          ss=self.sigsum[macaddr]
-          ss.update( \
-            obs0.rolling_avg(), \
-            obs1.rolling_avg(), \
-            obs2.rolling_avg(), \
-            obs0.rolling_var(), \
-            obs1.rolling_var(), \
-            obs2.rolling_var() )
-        self.Lock_sigsum.release()
+        #else:
+         # ss=self.sigsum[macaddr]
+          #ss.update( \
+          #  obs0.rolling_avg(), \
+          #  obs1.rolling_avg(), \
+          #  obs2.rolling_avg(), \
+          #  obs0.rolling_var(), \
+          #  obs1.rolling_var(), \
+          #  obs2.rolling_var() )
+        #self.Lock_sigsum.release()
       else: #mac not in all three observation lists
         #dont bother processing unless we have all 3 observation
         continue
+    self.Lock_sigsum.release()
     self.Lock_obs.release()
     pass
     self.Lock_sigsum.acquire()
@@ -294,7 +309,7 @@ class Aggregegate(threading.Thread):
     note this will also overwrite reported signals s1 s2 s3
     """
     self.Lock_sigsum.acquire()
-    self.sigsum.update(calcresults)	# Update sig summary dict
+    self.sigsum.update(calcresults) # Update sig summary dict
     self.Lock_sigsum.release()
  
   def receive_mac_obs(self):
@@ -322,7 +337,7 @@ class Aggregegate(threading.Thread):
         self.append_sigsummary()
         pass
       elif data_tag == POSITION_DIST:
-	# Only RANK 0 will recv this tag; update sig_summary sent from other
+    # Only RANK 0 will recv this tag; update sig_summary sent from other
         self.append_sigsummary(data)
         pass
       elif data_tag == PIMAC_DIST:
