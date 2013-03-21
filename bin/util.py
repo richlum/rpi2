@@ -3,6 +3,7 @@ import subprocess
 import re
 import sys
 import inspect
+#debug=True
 debug=False
 
 

@@ -16,6 +16,8 @@ import threading
 import thread
 import util 
 from datetime import datetime
+import itertools
+
 
 DICT_DIST = 10
 POSITION_DIST = 20
@@ -39,6 +41,7 @@ def share(sig_aggregate, mac_observations, rank):
     #store locally first
     sig_aggregate.push_obs(mac_observations, rank)
     sig_aggregate.distrib(mac_observations)
+    util.dbg(10)
     pass
   
 
@@ -59,6 +62,7 @@ class SigSummary:
     self.var2=var2
     self.x=xpos
     self.y=ypos
+    self.count=0
 
   
   def update(self, sig0, sig1, sig2, var0, var1, var2):
@@ -68,7 +72,15 @@ class SigSummary:
     self.var0=var0
     self.var1=var1
     self.var2=var2
+    self.count+=1
   
+  def setcount(self,count):
+    self.count=count 
+
+  def getcount(self):
+    return self.count
+
+
   def set_xy(self,xval,yval):
     """
     Utility class for position calculator to deposit results
@@ -134,11 +146,26 @@ class Aggregegate(threading.Thread):
       if ranks != self.rank:
         self.Lock_obs.acquire()
         util.dbg(self.rank,"locked Lock_obs")
+        #print "%d: mac_obs going into send %d" % (ranks, len(mac_observations))
         copy_mac_obs=mac_observations.copy()
         self.Lock_obs.release()
         util.dbg(self.rank,"unlocked Lock_obs")
-   
-        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
+        
+        maxsendqty=10
+        qty=len(copy_mac_obs)
+        # slice up dictionaries into chunks of 10 or less for sending
+        while qty>0:
+            if qty>=maxsendqty:
+                tosend=dict(itertools.islice(copy_mac_obs.iteritems(),0,maxsendqty))
+                copy_mac_obs=dict(itertools.islice(copy_mac_obs.iteritems(),maxsendqty,qty))
+            else:
+                tosend=copy_mac_obs
+                copy_mac_obs={}
+            self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+            qty=len(copy_mac_obs)
+            
+         
+#        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
         dbgmsg = str(len(copy_mac_obs)) + " macs sent"
         util.dbg(self.rank,dbgmsg)
    
@@ -147,21 +174,21 @@ class Aggregegate(threading.Thread):
     for mac in mac_obs:
       mac_obs[mac].settimestamp(currtime)
 
-  def removeold(self,mac_obs):
+  def removeold(self,mac_obs,newlist):
     maxdelta = 30
     oldsize= len(mac_obs)
     currenttime=datetime.now()
     
-    newlist={}
+    #newlist={}
     for mac in mac_obs:
       delta = mac_obs[mac].gettimestamp() - currenttime
       if delta.seconds < maxdelta :
         newlist[mac]=mac_obs[mac]
     mac_obs=newlist
     newsize = len(mac_obs)
-    if newsize != oldsize :
-      print "changed obs size from " + str(oldsize) + " to " + str(newsize)
-    return mac_obs
+    #if newsize != oldsize :
+    #  print "changed obs size from " + str(oldsize) + " to " + str(newsize)
+    return newlist
   
   def push_obs(self,mac_observations, src_rank):
     """
@@ -169,27 +196,35 @@ class Aggregegate(threading.Thread):
     that generated the data
     """
     #todo implement locks around the observationlists
+    if len(mac_observations) <= 0:
+        print "Empty observation"
+        return
     obslist={}
-    self.timestamp(mac_observations)
     util.dbg(self.rank)
     self.Lock_obs.acquire()
-#print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
+    #print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
+    self.timestamp(mac_observations)
     util.dbg(self.rank,"locked Lock_obs")
     if src_rank not in self.observationlists :
      self.observationlists[src_rank]=mac_observations.copy()
     else: 
      obslist=self.observationlists[src_rank]
-     mac_observations = self.removeold(mac_observations)
+     obslist = self.removeold(mac_observations,obslist)
      obslist.update(mac_observations)
      self.observationlists[src_rank]=obslist.copy()
-     print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
+#todo: something is wrong with observation list, it grows unbounded 
+# and does not match macobs size    
+#    print "observationlist len = %d" % len(self.observationlists[src_rank])
     self.Lock_obs.release()
+#    print str(self.rank) + ":length of observ list = " + str(len(self.observationlists[src_rank]))
+#    print str(self.rank) + ":length of macobs list = " + str(len(mac_observations))
     util.dbg(self.rank,"unlocked Lock_obs")
     ## if you want to verify updates being entered uncomnent the following
-    #for mac in mac_observations:
+#    for mac in mac_observations:
 #      if (mac_observations[mac].count>2):
 #        print str(self.rank) + ": " + mac + " " + str(mac_observations[mac].rolling_avg())  +" activity=" + str(mac_observations[mac].count)
-    
+   
+ 
   def get_sig_summary(self):
     """
     create a SigSummary object that provides current view of all clients collated
@@ -267,6 +302,7 @@ class Aggregegate(threading.Thread):
       receive side of mpi_recv to receive {mac:Observation} from other Observers
       """
       
+      util.dbg(self.rank,"recv mac obs")
       #if (self.rank == 0):
         #print "!!!!!!!!!!!!!!!!!!!!!!!"
         #print len(self.sigsum)

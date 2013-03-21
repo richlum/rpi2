@@ -18,7 +18,6 @@ class Locator(threading.Thread):
   def run(self):
     counter=0
     while (self.active):
-
       # Shld Contain calc(x,y) obsv from other rank
       dataset = self.aggr.get_sig_summary()
       if (self.aggr.rank == 0):
@@ -26,9 +25,9 @@ class Locator(threading.Thread):
 
 	  # Joey does (x,y) calc on dataset obvs, then resets
 	  # Update GUI
-
           print str(self.aggr.rank) +":"+ str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
-            str(dataset[mac].get_xy())
+            str(dataset[mac].get_xy()) + " " + str(dataset[mac].getcount())
+
       else:
 	# ADDED BY TONY
 	# For non-zero RPI, calculate (x,y) then send result to Rank 0
