@@ -101,10 +101,14 @@ count=0
 
 (comm, rank) = initialize_mpi()
 
+## TONY HARDCODED
+## TODO : Dynamically determine max # of RPI
+MAX_NUM_PI = 3
+
 signal_aggregator = Aggregegate(comm,rank)
 #start signal_aggregator mpi recieve thread 
 signal_aggregator.start()
-position_calculator =  Locator(signal_aggregator)
+position_calculator =  Locator(signal_aggregator, MAX_NUM_PI)
 position_calculator.start()
 
 while 1:

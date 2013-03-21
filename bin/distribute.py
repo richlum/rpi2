@@ -7,7 +7,7 @@
 # stores dictionaries (min 3) in Aggregate object
 # Aggregate provides collation of 3 observations by mac into a SigSummary object
 # create a dictionary of SigSummary objects keyed by mac {mac:SigSummary} as input
-# into mpi for distribution.
+# into mpi for dietribution.
 
 # mixture of methods and two classes here centered on saving and sharing signal info
 
@@ -24,6 +24,7 @@ AP_DIST = 40
 CMD_STOP = 50
 CMD_START = 60
 CMD_CLEARSTALE = 70
+CALC_DIST = 80
 
 def initialize_mpi():
     """
@@ -68,7 +69,7 @@ class SigSummary:
     self.var1=var1
     self.var2=var2
   
-  def set_xy(xval,yval):
+  def set_xy(self,xval,yval):
     """
     Utility class for position calculator to deposit results
     """
@@ -116,9 +117,12 @@ class Aggregegate(threading.Thread):
     self.active=True
     self.observationlists={}
     self.sigsum={}
+    
     print "initialized"
     
-    
+  def send_location_summary_helper(self, dest_rank, sig_sum, tag_type):
+    self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+ 
   def shutdown(self):
     util.dbg(self.rank)
     self.active=False
@@ -255,14 +259,19 @@ class Aggregegate(threading.Thread):
     note this will also overwrite reported signals s1 s2 s3
     """
     self.Lock_sigsum.acquire()
-    self.sigsum.update(calcresults)
+    self.sigsum.update(calcresults)	# Update sig summary dict
     self.Lock_sigsum.release()
-  
+ 
   def receive_mac_obs(self):
       """
       receive side of mpi_recv to receive {mac:Observation} from other Observers
       """
-      #print "recv mac objs"
+      
+      #if (self.rank == 0):
+        #print "!!!!!!!!!!!!!!!!!!!!!!!"
+        #print len(self.sigsum)
+        #print "!!!!!!!!!!!!!!!!!!!!!!!"
+
       stat = MPI.Status()
       data = self.comm.recv( source=MPI.ANY_SOURCE , tag=MPI.ANY_TAG, status=stat )
       #print "received obs from %d\n" % stat.Get_source()
@@ -274,11 +283,11 @@ class Aggregegate(threading.Thread):
         # the send side should be sending us a dictionary of SigSummary
         # Objects with the x y co-ordinates populated.
         #TODO: needs testing
-        self.append_sigsummary(data)
+        self.append_sigsummary()
         pass
       elif data_tag == POSITION_DIST:
-        #rank zero signal strenght to reference ap and translated address
-        #for ability to move monitoring pi's
+	# Only RANK 0 will recv this tag; update sig_summary sent from other
+        self.append_sigsummary(data)
         pass
       elif data_tag == PIMAC_DIST:
         #TODO: build datastructure to hold the mac of the pi and rank

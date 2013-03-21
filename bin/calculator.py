@@ -2,12 +2,14 @@
 import threading
 import time
 import dbufwindow
+import distribute
 
 class Locator(threading.Thread):
-  def __init__(self,aggregator):
+  def __init__(self,aggregator,MAX_NUM_PI):
     super(Locator,self).__init__()
     self.aggr = aggregator
     self.active=True
+    self.MAX_PI_COUNT = MAX_NUM_PI
 
   def off(self):
     self.active=False
@@ -16,20 +18,36 @@ class Locator(threading.Thread):
     counter=0
     while (self.active):
 
+      # Shld Contain calc(x,y) obsv from other rank
       dataset = self.aggr.get_sig_summary()
       if (self.aggr.rank == 0):
         for i,mac in enumerate(dataset):
+
+	  # Joey does (x,y) calc on dataset obvs, then resets
+	  # Update GUI
+
           print str(self.aggr.rank) +":"+ str(i)+ " "  +   mac  + str (dataset[mac].get_signals()) +  \
             str(dataset[mac].get_xy())
-        counter+=1
-        print "counter = %d" % counter
       else:
-        #TODO:  TONY  this is where your logic for distributed calculations should be integrated to
-        # send data if not rank 0.   Matching recv logic in distribute.py recv thread 
-        # we need an mpisend here using tag  POSITION_DIST    (which needs to be put into a common file
-        # accessible from both distribute.py and calculator.py
-        #send calculated data back to rank 0
-        pass
+	# ADDED BY TONY
+	# For non-zero RPI, calculate (x,y) then send result to Rank 0
+        for i,mac in enumerate(dataset):
+	  mac_hash = int(''.join(mac.split(':')[0:]), 32) % self.MAX_PI_COUNT
+	  if (mac_hash != self.aggr.rank):
+            continue
+	  else:
+	    ########## Does does some (x,y)
+	    #
+	    # 1. Calculation ....   
+	    # 2. Save calculated (x,y) back to dataset[mac]
+	    #
+	    ###########
+
+            ## set coor to (20,20) to test weather send was successful
+            dataset[mac].set_xy(20,20)
+            sig_sum = {mac : dataset[mac]}
+            self.aggr.send_location_summary_helper(0, sig_sum, distribute.POSITION_DIST)
+        
       time.sleep(1)
       
   #def run(self):
