@@ -4,6 +4,7 @@ import time
 import dbufwindow
 import distribute
 
+#Tony Test
 class Locator(threading.Thread):
   def __init__(self,aggregator,MAX_NUM_PI):
     super(Locator,self).__init__()
