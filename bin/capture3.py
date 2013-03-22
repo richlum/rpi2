@@ -104,6 +104,7 @@ count=0
 
 ## TONY HARDCODED
 ## TODO : Dynamically determine max # of RPI
+#tony see size implemented in initialize_mpi
 MAX_NUM_PI = 3
 
 signal_aggregator = Aggregegate(comm,rank,size)
@@ -179,5 +180,8 @@ while 1:
       break
 
     if not line:
+      print "NOLINE"
       continue
+   
+print "Tshark completed"
     

@@ -140,7 +140,18 @@ class Aggregegate(threading.Thread):
     if sig_sum:
         dbgmsg = "%d:%d send loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
         util.dbg(self.rank, dbgmsg)
-        self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+        try:
+            self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+        except RuntimeError as r:
+            print "runtime error" + r.args
+        except TypeError as t:
+            print "typeerror" + t.args
+        except IOError as i:
+            print "ioerror" + i.args
+        except Exception as e:
+            print "exception" + e.args
+            
+
         util.dbg(self.rank, dbgmsg)
     else:
         print "###################sig_sum=NULL, nothing sent"
@@ -161,8 +172,9 @@ class Aggregegate(threading.Thread):
         self.Lock_obs.release()
         util.dbg(self.rank,"unlocked Lock_obs")
         
-        maxsendqty=10
+        maxsendqty=20
         qty=len(copy_mac_obs)
+        print "%d:%d total size to send %d " % (self.rank, ranks, qty)
         # slice up dictionaries into chunks of 10 or less for sending
         while qty>0:
             if qty>=maxsendqty:
@@ -172,8 +184,17 @@ class Aggregegate(threading.Thread):
                 tosend=copy_mac_obs
                 copy_mac_obs={}
             qty=len(copy_mac_obs)
-            print "%d: %d sending size %d" % (self.rank, ranks, qty)    
-            self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+            print "%d: %d sending size %d" % (self.rank, ranks, len(tosend))    
+            try:
+                self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+            except RuntimeError as r:
+                print "RUNTIME error"+r.args
+            except TypeError as t:
+                print "TYPERROR"+t.args
+            except IOError as i:
+                print "IOERROR"+i.args
+            except Exception as e:
+                print "EXCEPTION"+e.args
              
 #        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
         dbgmsg = str(len(copy_mac_obs)) + " macs sent"

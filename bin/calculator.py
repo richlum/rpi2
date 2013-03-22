@@ -23,6 +23,7 @@ class Locator(threading.Thread):
   def run(self):
     counter=0
     while (self.active):
+      counter+=1
       # Shld Contain calc(x,y) obsv from other rank
       dataset = self.aggr.get_sig_summary().copy()
       if (self.aggr.rank == 0):
@@ -55,7 +56,7 @@ class Locator(threading.Thread):
                 dataset[mac].set_xy(20,20)
                 sig_sum = {mac : dataset[mac]}
                 self.aggr.send_location_summary_helper(0, sig_sum, distribute.POSITION_DIST)
-        
+      print "----%d" % counter  
       time.sleep(1)
       
   #def run(self):
