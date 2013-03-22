@@ -16,6 +16,31 @@ class Locator(threading.Thread):
       self.frame = self.app.getFrame()
       print "locator inited"
 
+  def get_macs(self):
+    return (mac0,pimac1,pimac2)
+
+  def get_pi_xy(self):
+    pi_rank_xy={}
+    xy_pi0=(300, 0)
+    xy_pi1=(200,300)
+    xy_pi2=(0,0)
+    pi_rank_xy[0]=xy_pi0
+    pi_rank_xy[1]=xy_pi1
+    pi_rank_xy[2]=xy_pi2
+    return pi_rank_xy
+
+  def n_centroid(self, sigsummary) : 
+    ranks=(0,1,2)
+    pi_rank_xy = self.get_pi_xy()
+    
+    for mac in sigsummary:
+      #three signal strength measurments for a given mac
+      obsdict = sigsummary[mac].get_signals()
+      norm = 1.0/sum(pow(10,obsdict[rank]/20.) for rank in ranks)  
+      Rx = norm*sum(pi_rank_xy[rank][0]*pow(10,obsdict[rank]/20.) for rank in ranks)
+      Ry = norm*sum(pi_rank_xy[rank][1]*pow(10,obsdict[rank]/20.) for rank in ranks)
+      sigsummary[mac].set_xy(int(Rx),int(Ry))
+
 
   def off(self):
     self.active=False
@@ -27,6 +52,7 @@ class Locator(threading.Thread):
       # Shld Contain calc(x,y) obsv from other rank
       dataset = self.aggr.get_sig_summary().copy()
       if (self.aggr.rank == 0):
+        self.n_centroid(dataset)
         for i,mac in enumerate(dataset):
 
       # Joey does (x,y) calc on dataset obvs, then resets
@@ -45,6 +71,7 @@ class Locator(threading.Thread):
             if (mac_hash != self.aggr.rank):
                 continue
             else:
+                self.n_centroid(dataset)
         ########## Does does some (x,y)
         #
         # 1. Calculation ....   
@@ -53,11 +80,11 @@ class Locator(threading.Thread):
         ###########
 
             ## set coor to (20,20) to test weather send was successful
-                dataset[mac].set_xy(20,20)
+                #dataset[mac].set_xy(20,20)
                 sig_sum = {mac : dataset[mac]}
                 self.aggr.send_location_summary_helper(0, sig_sum, distribute.POSITION_DIST)
       print "----%d" % counter  
-      time.sleep(1)
+      time.sleep(0.3)
       
   #def run(self):
     #counter=0

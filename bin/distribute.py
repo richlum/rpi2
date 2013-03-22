@@ -141,7 +141,10 @@ class Aggregegate(threading.Thread):
         dbgmsg = "%d:%d send loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
         util.dbg(self.rank, dbgmsg)
         try:
+            
             self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+            dbgmsg = "%d:%d sent loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
+            pass
         except RuntimeError as r:
             print "runtime error" + r.args
         except TypeError as t:
@@ -186,7 +189,9 @@ class Aggregegate(threading.Thread):
             qty=len(copy_mac_obs)
             print "%d: %d sending size %d" % (self.rank, ranks, len(tosend))    
             try:
+                util.dbg(self.rank,"sending DICT to " + str(ranks))
                 self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+                util.dbg(self.rank,"sent DICT")
             except RuntimeError as r:
                 print "RUNTIME error"+r.args
             except TypeError as t:
@@ -195,8 +200,9 @@ class Aggregegate(threading.Thread):
                 print "IOERROR"+i.args
             except Exception as e:
                 print "EXCEPTION"+e.args
+            except BaseException as e:
+                print "BASEEXCEPTION"+e.args
              
-#        self.comm.send(copy_mac_obs, dest=ranks, tag=DICT_DIST)
         dbgmsg = str(len(copy_mac_obs)) + " macs sent"
         util.dbg(self.rank,dbgmsg)
    
@@ -278,7 +284,7 @@ class Aggregegate(threading.Thread):
     dbgmsg  = "size of list (0,1,2) = " + size0 + ", " + size1 + ", " + size2 
     util.dbg(self.rank,dbgmsg)
     self.Lock_sigsum.acquire()
-    if len(self.sigsum)>100:
+    if len(self.sigsum)>200:
       self.sigsum={}
     for macaddr in self.observationlists[0]:
       if (macaddr in self.observationlists[0] and \

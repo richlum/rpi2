@@ -116,6 +116,8 @@ position_calculator.start()
 while 1:
     try:
         line = sys.stdin.readline()
+        if not line:
+            break
         fields = line.split(';')
         if (len(fields[4])>0):
             mac=fields[4]
@@ -170,6 +172,7 @@ while 1:
             #print str(rank) + ":distribute qty macs "  + str(len(mac_sample))
             distribute.share(signal_aggregator,mac_sample,rank)
             mac_sample={}
+            #time.sleep(.3)
             time.sleep(1)
             
     

@@ -32,6 +32,7 @@ def stream_pcap(fn):
   print >>sys.stderr, "executing cmd\n" + str(cmd)
   rc=subprocess.call(cmd)
   print >>sys.stderr, "tshark rc = " + str(rc)
+  print "tshark completed================"
   
 filename="sample.pcap"
 if (len(sys.argv) >1):
