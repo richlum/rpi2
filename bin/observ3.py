@@ -102,3 +102,14 @@ class Observation:
       var = [ x*x for x in var] 
       var = sum(var)/float(len(self.rolling_samples))
       return var 
+
+
+    def smoothed_avg(self):
+        alpha = 0.5
+        size=len(self.rolling_samples)
+        if size == 1:
+            return sum(self.rolling_samples)
+        elif size>1:
+            return (sum(self.rolling_samples[:-1])/(size-1))*(1.0-alpha) + alpha*(self.rolling_samples[-1])
+        else:
+            return 0

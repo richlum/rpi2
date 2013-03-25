@@ -297,9 +297,12 @@ class Aggregegate(threading.Thread):
     #    self.Lock_sigsum.acquire()
         #if macaddr not in self.sigsum:
         self.sigsum[macaddr]=SigSummary( \
-            obs0.rolling_avg(), \
-            obs1.rolling_avg(), \
-            obs2.rolling_avg(), \
+            # obs0.rolling_avg(), \
+            # obs1.rolling_avg(), \
+            # obs2.rolling_avg(), \
+            obs0.smoothed_avg(), \
+            obs1.smoothed_avg(), \
+            obs2.smoothed_avg(), \
             obs0.rolling_var(), \
             obs1.rolling_var(), \
             obs2.rolling_var() )
