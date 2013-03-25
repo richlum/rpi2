@@ -126,6 +126,7 @@ class Aggregegate(threading.Thread):
     self.rank=rank
     self.size=size
     self.Lock_obs = thread.allocate_lock()
+    self.Lock_mpisend = thread.allocate_lock()
     self.Lock_sigsum =  thread.allocate_lock()
     self.active=True
     self.observationlists={}
@@ -141,8 +142,9 @@ class Aggregegate(threading.Thread):
         dbgmsg = "%d:%d send loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
         util.dbg(self.rank, dbgmsg)
         try:
-            
+            self.Lock_mpisend.acquire()
             self.comm.send(sig_sum, dest=dest_rank, tag=POSITION_DIST)
+            self.Lock_mpisend.release()
             dbgmsg = "%d:%d sent loc summary: %s" % (self.rank, dest_rank, str(sig_sum))
             pass
         except RuntimeError as r:
@@ -190,7 +192,9 @@ class Aggregegate(threading.Thread):
             print "%d: %d sending size %d" % (self.rank, ranks, len(tosend))    
             try:
                 util.dbg(self.rank,"sending DICT to " + str(ranks))
+                self.Lock_mpisend.acquire()
                 self.comm.send(tosend, dest=ranks, tag=DICT_DIST)
+                self.Lock_mpisend.release()
                 util.dbg(self.rank,"sent DICT")
             except RuntimeError as r:
                 print "RUNTIME error"+r.args
