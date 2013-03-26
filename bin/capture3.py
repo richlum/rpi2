@@ -173,7 +173,7 @@ while 1:
             distribute.share(signal_aggregator,mac_sample,rank)
             mac_sample={}
             #time.sleep(.3)
-            #time.sleep(1)
+            time.sleep(1)
             
     
 

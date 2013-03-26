@@ -14,7 +14,7 @@ import threading
 #USE_BUFFERED_DC = False
 USE_BUFFERED_DC = True
 
-class BufferedWindow(wx.Window):
+class BufferedWindow(wx.ScrolledWindow):
 
     """
 
@@ -109,14 +109,15 @@ class DrawWindow(BufferedWindow):
         for key, data in self.DrawData.items():
             if key == "Rectangles":
                 dc.SetBrush(wx.BLUE_BRUSH)
-                dc.SetPen(wx.Pen('VIOLET', 4))
+                dc.SetPen(wx.Pen('BLUE', 4))
                 for r in data:
                     dc.DrawRectangle(*r)
-            elif key == "Ellipses":
+            elif key == "TextLabel":
                 dc.SetBrush(wx.Brush("GREEN YELLOW"))
-                dc.SetPen(wx.Pen('CADET BLUE', 2))
+                dc.SetPen(wx.Pen('YELLOW', 1))
                 for r in data:
-                    dc.DrawEllipse(*r)
+                    print r
+                    dc.DrawText(*r)
             elif key == "Polygons":
                 dc.SetBrush(wx.Brush("SALMON"))
                 dc.SetPen(wx.Pen('VIOLET RED', 4))
@@ -201,14 +202,18 @@ class TestFrame(wx.Frame):
           DrawData["Rectangles"] = l
 
         # make some random ellipses
-#        l = []
-#        for i in range(5):
-#            w = random.randint(1,MaxX/2)
-#            h = random.randint(1,MaxY/2)
-#            x = random.randint(1,MaxX-w)
-#            y = random.randint(1,MaxY-h)
-#            l.append( (x,y,w,h) )
-#        DrawData["Ellipses"] = l
+        l = []
+        offsetX = 5
+        offsetY = 15
+        if len(self.userdata)>0:
+          #print "userdata = " + str(self.userdata)
+          for mac in self.userdata:
+              (x,y) = self.userdata[mac].get_xy()
+              x+=MaxX/2+offsetX
+              y+=MaxY/2+offsetY
+              text=mac[-2:]
+              l.append( (text,x,y) )
+          DrawData["TextLabel"] = l
 #
 #        # Polygons
 #        l = []
@@ -237,8 +242,21 @@ class DemoApp(wx.App,threading.Thread):
         return self.frame
 
     def run(self):
+        #mainloop never returns
         self.MainLoop()
 
+class GuiThread(threading.Thread):
+  def __init__(self, demoApp):
+    super(GuiThread,self).__init__()
+    self.theapp=demoApp
+    #self.run()
+
+    
+  def run(self):
+    self.theapp.run()
+    
+  
+        
 if __name__ == "__main__":
     app = DemoApp(0)
     app.MainLoop()

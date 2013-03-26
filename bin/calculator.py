@@ -14,6 +14,7 @@ class Locator(threading.Thread):
     if (self.aggr.rank == 0):
       self.app = db.DemoApp(0)
       self.frame = self.app.getFrame()
+      self.guithread=db.GuiThread(self.app)
       print "locator inited"
 
   def get_macs(self):
@@ -84,7 +85,7 @@ class Locator(threading.Thread):
                 sig_sum = {mac : dataset[mac]}
                 self.aggr.send_location_summary_helper(0, sig_sum, distribute.POSITION_DIST)
       print "----%d" % counter  
-      time.sleep(0.3)
+      time.sleep(1)
       
   #def run(self):
     #counter=0
